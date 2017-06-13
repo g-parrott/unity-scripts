@@ -1,41 +1,51 @@
 using System;
 
-public struct OptionalFunction<ParamT, ReturnT>
-{
-    private Func<ParamT, ReturnT> Fn { get; set; }
-
-    public bool CanBeCalled { get; private set; }
-
-    public OptionalFunction(Func<ParamT, ReturnT> fn, bool canBeCalled)
-    {
-        Fn = fn;
-        CanBeCalled = canBeCalled;
-    }
-
-    public void Enable()
-    {
-        CanBeCalled = true;
-    }
-
-    public void Disable()
-    {
-        CanBeCalled = false;
-    }
-
-    public void Toggle()
-    {
-        CanBeCalled = !CanBeCalled;
-    }
-
-    public Nullable<ReturnT> Invoke(ParamT param)
-    {
-        return (CanBeCalled) ? new Nullable<ReturnT>(Fn(param)) : null;
-    }
-}
-
 public class TimedFunction<ParamT, ResultT>
 {
-    public TimedFunction()
+    public float Duration { get; private set; }
+
+    public ParamT Param { get; private set; }
+
+    private NullableFunction<ParamT, ResultT> _fn;
+
+    private float _timeSinceStartCountdown = 0f;
+
+    private bool _started = false;
+
+    public TimedFunction(Func<ParamT, ResultT> fn, ParamT param, float duration)
     {
+        _fn = new NullableFunction<ParamT, ResultT>(fn, false);
+    }
+
+    public void Start()
+    {
+        _timeSinceStartCountdown = 0;
+        _started = true;
+    }
+
+    public void Stop()
+    {
+        _started = false;
+        _timeSinceStartCountdown = 0;
+    }
+
+    public void TogglePause()
+    {
+        _started = !started;
+    }
+
+    public Nullable<ResultT> Update(float deltaTime)
+    {
+        if (_started)
+        {
+            _timeSinceStartCountdown += deltaTime;
+
+            if (_timeSinceStartCountdown > Duration)
+            {
+                _fn.Enable();
+            }
+        }
+
+        return _fn.Invoke(Param);
     }
 }
